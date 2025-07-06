@@ -27,4 +27,17 @@ class TddApplicationTests {
 	//Then
 		assertEquals("충천 포인트 0P",ce.getErrorCode().getMessage());
 	}
+
+	@Test
+	@DisplayName("[1회 충전 금액 제한]입력받은 포인트가 100,000P 초과 일때 충전 실패")
+	void overChargeAttempt(){
+	//Given
+		long id = 11L;
+		long chargePointAmount = 100001L;
+	//When
+		UserPointService userPointService = new UserPointService();
+		CustomException ce = assertThrows(CustomException.class,() -> userPointService.chargePoint(id, chargePointAmount),"충천 포인트 0P");
+	//Then
+		assertEquals("최대 충천 포인트 초과",ce.getErrorCode().getMessage());
+	}
 }

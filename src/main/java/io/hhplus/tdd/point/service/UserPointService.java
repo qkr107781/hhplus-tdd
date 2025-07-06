@@ -12,6 +12,9 @@ public class UserPointService {
         if(chargePointAmount <= 0L){
             throw new CustomException(ErrorCode.ZERO_POINT);
         }
+        if(chargePointAmount > 100000L){
+            throw new CustomException(ErrorCode.OVER_CHARGE);
+        }
         return new UserPoint(11L,0L,System.currentTimeMillis());
     }
 
