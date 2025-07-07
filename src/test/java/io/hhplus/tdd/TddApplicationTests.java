@@ -7,15 +7,11 @@ import io.hhplus.tdd.point.dto.TransactionType;
 import io.hhplus.tdd.point.dto.UserPoint;
 import io.hhplus.tdd.point.service.UserPointService;
 import io.hhplus.tdd.point.util.exception.CustomException;
-import org.apache.catalina.core.ApplicationContext;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
@@ -30,30 +26,17 @@ class TddApplicationTests {
 	@MockBean
 	private PointHistoryTable pointHistoryTable;
 
-	@Test
-	@DisplayName("[충전 금액 부족]입력받은 포인트가 0P 이하 일때 충전 실패")
-	void chargePointEmpty() throws CustomException {
+	@ParameterizedTest
+	@DisplayName("[충전 금액 부족]입력받은 포인트가 0P 이하 일때 충전 실패, [1회 충전 금액 제한]입력받은 포인트가 100,000P 초과 일때 충전 실패")
+	@ValueSource(longs = {0L,100_001L})
+	void validationInputChargePoint(long chargePointAmount) throws CustomException {
 	//Given
 		long id = 11L;
-		long chargePointAmount = 0L;
 	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
-		CustomException ce = assertThrows(CustomException.class,() -> userPointService.chargePoint(id, chargePointAmount),"충천 포인트 0P");
+		CustomException ce = assertThrows(CustomException.class,() -> userPointService.chargePoint(id, chargePointAmount),"충천 포인트 0P or 최대 충천 포인트 초과");
 	//Then
-		assertEquals("충천 포인트 0P",ce.getErrorCode().getMessage());
-	}
-
-	@Test
-	@DisplayName("[1회 충전 금액 제한]입력받은 포인트가 100,000P 초과 일때 충전 실패")
-	void limitOnOnetimeChargingAmount(){
-	//Given
-		long id = 11L;
-		long chargePointAmount = 100001L;
-	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
-		CustomException ce = assertThrows(CustomException.class,() -> userPointService.chargePoint(id, chargePointAmount),"충천 포인트 0P");
-	//Then
-		assertEquals("최대 충천 포인트 초과",ce.getErrorCode().getMessage());
+		assertEquals(600,ce.getErrorCode().getStatus());//input 값에 대한 예외처리는 모두 600코드 return status 통일
 	}
 
 	@Test
