@@ -2,11 +2,14 @@ package io.hhplus.tdd.point.service;
 
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
+import io.hhplus.tdd.point.dto.PointHistory;
 import io.hhplus.tdd.point.dto.TransactionType;
 import io.hhplus.tdd.point.dto.UserPoint;
 import io.hhplus.tdd.point.util.exception.CustomException;
 import io.hhplus.tdd.point.util.exception.ErrorCode;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserPointService {
@@ -98,4 +101,7 @@ public class UserPointService {
         return userPointTable.selectById(id);
     }
 
+    public List<PointHistory> selectUserPointHistory(long id){
+        return pointHistoryTable.selectAllByUserId(id);
+    }
 }

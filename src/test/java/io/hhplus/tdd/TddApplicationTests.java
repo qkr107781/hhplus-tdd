@@ -181,4 +181,40 @@ class TddApplicationTests {
 	//Then
 		assertEquals(ownUserPoint,currentUserPoint.point());
 	}
+
+	@Test
+	@DisplayName("[포인트 사용 내역 조회]포인트 사용 내역 조회")
+	void selectUserPointHistory(){
+	//Given
+		long id = 11L;
+		long chargePointAmount = 10_000L;
+		long usePointAmount = 1_000L;
+
+		//소유 포인트가 없는 유저포인트 객체 생성
+		UserPointTable userPointTable= new UserPointTable();
+		userPointTable.insertOrUpdate(id,0L);
+
+		//사용 내역 객체 생성
+		PointHistoryTable pointHistoryTable = new PointHistoryTable();
+
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		//포인트 충전
+		UserPoint afterChargeUserPoint =  userPointService.chargePoint(id, chargePointAmount);
+		//포인트 사용
+		UserPoint afterUseUserPoint =  userPointService.usePoint(id, usePointAmount);
+	//When
+		List<PointHistory> pointHistories = userPointService.selectUserPointHistory(id);
+	//Then
+		//충전 내역 정상 입력 확인
+		assertEquals(2,pointHistories.size());//충전 후 사용으로 리턴 리스트 사이즈는 2이어야 함
+		assertEquals(id,pointHistories.get(0).userId());
+		assertEquals(chargePointAmount,pointHistories.get(0).amount());
+		assertEquals(TransactionType.CHARGE,pointHistories.get(0).type());
+
+		//사용 내역 정상 입력 확인
+		assertEquals(2,pointHistories.size());//충전 후 사용으로 리턴 리스트 사이즈는 2이어야 함
+		assertEquals(id,pointHistories.get(1).userId());
+		assertEquals(usePointAmount,pointHistories.get(1).amount());
+		assertEquals(TransactionType.USE,pointHistories.get(1).type());
+	}
 }
