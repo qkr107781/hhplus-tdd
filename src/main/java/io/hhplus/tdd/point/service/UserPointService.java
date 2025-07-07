@@ -59,16 +59,11 @@ public class UserPointService {
      */
     public UserPoint usePoint(long id, long usePointAmount) throws CustomException{
 
-        //사용 포인트 최소/최대 값 체크
-        if(usePointAmount < UserPoint.MIN_POINT || usePointAmount > UserPoint.MAX_POINT){
-            throw new CustomException(ErrorCode.INVALID_USE_POINT);
-        }
-
         //현재 소유 포인트 조회
         UserPoint currentUserPoint = userPointTable.selectById(id);
         long ownUserPoint = currentUserPoint.point();
         
-        //잔여 포인트가 0P 이거나 잔여 포인트 - 사용 포인트가 0P 보다 작은지 체크
+        //잔여 포인트가 0P 이거나 (잔여 포인트 - 사용 포인트)가 0P 보다 작은지 체크
         if(ownUserPoint == UserPoint.MIN_POINT || (ownUserPoint - usePointAmount) < UserPoint.MIN_POINT){
             throw new CustomException(ErrorCode.NOT_ENOUGH_VALANCE);
         }

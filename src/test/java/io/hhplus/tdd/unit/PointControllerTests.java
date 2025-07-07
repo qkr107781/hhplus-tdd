@@ -50,4 +50,17 @@ public class PointControllerTests {
                         .andExpect(status().isBadRequest());
     }
 
+    @ParameterizedTest
+    @DisplayName("[사용 포인트 제한]사용 포인트가 0P 이하 이거나 최대 잔고인 1,000,000P를 초과하는 경우 사용 실패")
+    @ValueSource(longs = {-1L,1_000_001L})
+    void invalidUsePoint(long usePointAmount) throws Exception {
+        //When
+        mockMvc.perform(patch("/point/11/use")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        //Given
+                        .content(String.valueOf(usePointAmount)))
+                //Then
+                .andExpect(status().isBadRequest());
+    }
+
 }

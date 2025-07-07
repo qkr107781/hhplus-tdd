@@ -3,6 +3,8 @@ package io.hhplus.tdd.point.controller;
 import io.hhplus.tdd.point.dto.PointHistory;
 import io.hhplus.tdd.point.dto.UserPoint;
 import io.hhplus.tdd.point.service.UserPointService;
+import io.hhplus.tdd.point.util.exception.CustomException;
+import io.hhplus.tdd.point.util.exception.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -69,10 +71,18 @@ public class PointController {
          * TODO - 특정 유저의 포인트를 사용하는 기능을 작성해주세요.
          */
     @PatchMapping("{id}/use")
-    public UserPoint use(
+    public ResponseEntity<UserPoint> use(
             @PathVariable long id,
-            @RequestBody long amount
+            @RequestBody long usePointAmount
     ) {
-        return new UserPoint(0, 0, 0);
+
+        //사용 포인트 최소/최대 값 체크
+        if(usePointAmount < UserPoint.MIN_POINT || usePointAmount > UserPoint.MAX_POINT){
+            return ResponseEntity.badRequest().build();
+        }
+
+        UserPoint afterUsePoint = userPointService.usePoint(id, usePointAmount);
+
+        return ResponseEntity.ok(afterUsePoint);
     }
 }
