@@ -34,7 +34,7 @@ public class UserPointService {
         //현재 소유 포인트 조회
         UserPoint currentUserPoint = userPointTable.selectById(id);
 
-        //소유 포인트와 충전 포인트 합
+        //소유 포인트와 충전 포인트 더하기
         chargePointAmount += currentUserPoint.point();
         //최대 잔고 초과 충전 체크
         if(chargePointAmount > UserPoint.MAX_POINT){
