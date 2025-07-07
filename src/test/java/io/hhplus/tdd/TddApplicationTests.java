@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
@@ -20,18 +19,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TddApplicationTests {
 
-	@MockBean
-	private UserPointTable userPointTable;
-
-	@MockBean
-	private PointHistoryTable pointHistoryTable;
-
 	@ParameterizedTest
 	@DisplayName("[충전 금액 부족]입력받은 포인트가 0P 이하 일때 충전 실패, [1회 충전 금액 제한]입력받은 포인트가 100,000P 초과 일때 충전 실패")
 	@ValueSource(longs = {0L,100_001L})
 	void validationInputChargePoint(long chargePointAmount) throws CustomException {
 	//Given
 		long id = 11L;
+
+		//소유 포인트가 없는 유저포인트 객체 생성
+		UserPointTable userPointTable= new UserPointTable();
+		userPointTable.insertOrUpdate(id,0L);
+
+		//사용 내역 객체 생성
+		PointHistoryTable pointHistoryTable = new PointHistoryTable();
 	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		CustomException ce = assertThrows(CustomException.class,() -> userPointService.chargePoint(id, chargePointAmount),"충천 포인트 0P or 최대 충천 포인트 초과");
@@ -46,10 +46,14 @@ class TddApplicationTests {
 		long id = 11L;
 		long chargePointAmount = 100L;
 
-		UserPointTable userPointTableNew = new UserPointTable();
-		userPointTableNew.insertOrUpdate(id,999_999L);
+		//최대 잔고에 근접한 유저포인트 객체 생성
+		UserPointTable userPointTable= new UserPointTable();
+		userPointTable.insertOrUpdate(id,999_999L);
+
+		//사용 내역 객체 생성
+		PointHistoryTable pointHistoryTable = new PointHistoryTable();
 	//When
-		UserPointService userPointService = new UserPointService(userPointTableNew,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		CustomException ce = assertThrows(CustomException.class,() -> userPointService.chargePoint(id, chargePointAmount),"충천 포인트 0P");
 	//Then
 		assertEquals("최대 잔고 초과",ce.getErrorCode().getMessage());
@@ -60,20 +64,20 @@ class TddApplicationTests {
 	void chargePointSuccess(){
 	//Given
 		long id = 11L;
-		long chargePointAmount = 1000L;
+		long chargePointAmount = 1_000L;
 
 	//When
-		//유저포인트 객체 생성
-		UserPointTable userPointTableNew = new UserPointTable();
-		//유저 생성
-		userPointTableNew.insertOrUpdate(11L,0);
-		//이력 객체 생성
-		PointHistoryTable pointHistoryTableNew = new PointHistoryTable();
+		//소유 포인트가 없는 유저포인트 객체 생성
+		UserPointTable userPointTable= new UserPointTable();
+		userPointTable.insertOrUpdate(id,0L);
 
-		UserPointService userPointService = new UserPointService(userPointTableNew,pointHistoryTableNew);
+		//사용 내역 객체 생성
+		PointHistoryTable pointHistoryTable = new PointHistoryTable();
+
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint afterChargeUserPoint =  userPointService.chargePoint(id, chargePointAmount);
 	//Then
-		List<PointHistory> pointHistory = pointHistoryTableNew.selectAllByUserId(id);
+		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
 
 		//충전 이력 정상 입력 확인
 		assertEquals(1,pointHistory.size());//1회 충전으로 리턴 리스트 사이즈는 1이어야 함
@@ -84,5 +88,26 @@ class TddApplicationTests {
 		//포인트 정상 충전 확인
 		assertEquals(id,afterChargeUserPoint.id());
 		assertEquals(chargePointAmount,afterChargeUserPoint.point());
+	}
+
+	@ParameterizedTest
+	@DisplayName("[잔고 부족]소유 포인트가 0P 이거나 사용할 포인트보다 작은 경우 사용 실패")
+	@ValueSource(longs = {0L,10_000L})
+	void notEnoughValance(long ownPointAmount){
+	//Given
+		long id = 11L;
+		long usePointAmount = 100_000L;
+
+		//유저포인트 객체 생성
+		UserPointTable userPointTable= new UserPointTable();
+		userPointTable.insertOrUpdate(id,ownPointAmount);
+
+		//사용 내역 객체 생성
+		PointHistoryTable pointHistoryTable = new PointHistoryTable();
+	//When
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		CustomException ce = assertThrows(CustomException.class,() -> userPointService.usePoint(id, usePointAmount),"잔여 포인트 부족");
+	//Then
+		assertEquals(602,ce.getErrorCode().getStatus());
 	}
 }
