@@ -57,12 +57,16 @@ public class UserPointService {
 
     public UserPoint usePoint(long id, long usePointAmount){
 
+        if(usePointAmount < 0L || usePointAmount > 1_000_000L){
+            throw new CustomException(ErrorCode.INVALID_USE_POINT);
+        }
+
         //현재 소유 포인트 조회
         UserPoint currentUserPoint = userPointTable.selectById(id);
         long ownUserPoint = currentUserPoint.point();
         
         //잔여 포인트가 0P 이거나 잔여 포인트 - 사용 포인트가 0P 보다 작은지 체크
-        if(ownUserPoint == 0 || (ownUserPoint - usePointAmount) < 0){
+        if(ownUserPoint == 0L || (ownUserPoint - usePointAmount) < 0){
             throw new CustomException(ErrorCode.NOT_ENOUGH_VALANCE);
         }
 
