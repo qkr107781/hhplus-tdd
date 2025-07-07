@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.convert.DataSizeUnit;
 
 import java.util.List;
 
@@ -67,14 +66,13 @@ class TddApplicationTests {
 		long id = 11L;
 		long chargePointAmount = 1_000L;
 
-	//When
 		//소유 포인트가 없는 유저포인트 객체 생성
 		UserPointTable userPointTable= new UserPointTable();
 		userPointTable.insertOrUpdate(id,0L);
 
 		//사용 내역 객체 생성
 		PointHistoryTable pointHistoryTable = new PointHistoryTable();
-
+	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint afterChargeUserPoint =  userPointService.chargePoint(id, chargePointAmount);
 	//Then
@@ -140,14 +138,14 @@ class TddApplicationTests {
 		long usePointAmount = 1_000L;
 		long ownUserPoint = 10_000L;
 		long remainingUserPoint = ownUserPoint - usePointAmount;
-	//When
+
 		//소유 포인트 10_000P 유저포인트 객체 생성
 		UserPointTable userPointTable= new UserPointTable();
 		userPointTable.insertOrUpdate(id,ownUserPoint);
 
 		//사용 내역 객체 생성
 		PointHistoryTable pointHistoryTable = new PointHistoryTable();
-
+	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint afterUseUserPoint =  userPointService.usePoint(id, usePointAmount);
 	//Then
@@ -170,14 +168,14 @@ class TddApplicationTests {
 	//Given
 		long id = 11L;
 		long ownUserPoint = 10_000L;
-	//When
+
 		//소유 포인트 10_000P 유저포인트 객체 생성
 		UserPointTable userPointTable = new UserPointTable();
 		userPointTable.insertOrUpdate(id,ownUserPoint);
 
 		//사용 내역 객체 생성
 		PointHistoryTable pointHistoryTable = new PointHistoryTable();
-
+	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint currentUserPoint = userPointService.selectUserPoint(id);
 	//Then
