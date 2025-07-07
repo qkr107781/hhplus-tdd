@@ -6,7 +6,9 @@ import lombok.Getter;
 public enum ErrorCode {
 
     ZERO_POINT(ErrorStatusCode.INPUT_VALID, "ZERO_POINT", "충천 포인트 0P"),
-    OVER_CHARGE(ErrorStatusCode.INPUT_VALID, "OVER_CHARGE", "최대 충천 포인트 초과");
+    LIMIT_ONETIME_CHARGE_AMOUNT(ErrorStatusCode.INPUT_VALID, "LIMIT_ONETIME_CHARGE_AMOUNT", "최대 충천 포인트 초과"),
+    OVER_CHARGE(ErrorStatusCode.INPUT_VALID, "OVER_CHARGE", "최대 잔고 초과")
+    ;
 
     ErrorCode(int status, String code, String message) {
         this.status = status;
