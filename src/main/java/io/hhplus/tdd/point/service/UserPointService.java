@@ -30,14 +30,6 @@ public class UserPointService {
      * @throws CustomException 예외처리 공통 클래스
      */
     public UserPoint chargePoint(long id, long chargePointAmount) throws CustomException {
-        //최소 충전 포인트 체크
-        if(chargePointAmount <= 0L){
-            throw new CustomException(ErrorCode.ZERO_POINT);
-        }
-        //최대 충전 포인트 체크
-        if(chargePointAmount > 100_000L){
-            throw new CustomException(ErrorCode.LIMIT_ONETIME_CHARGE_AMOUNT);
-        }
 
         //현재 소유 포인트 조회
         UserPoint currentUserPoint = userPointTable.selectById(id);
@@ -45,7 +37,7 @@ public class UserPointService {
         //소유 포인트와 충전 포인트 합
         chargePointAmount += currentUserPoint.point();
         //최대 잔고 초과 충전 체크
-        if(chargePointAmount > 1_000_000L){
+        if(chargePointAmount > UserPoint.MAX_POINT){
             throw new CustomException(ErrorCode.OVER_CHARGE);
         }
 
@@ -67,7 +59,8 @@ public class UserPointService {
      */
     public UserPoint usePoint(long id, long usePointAmount) throws CustomException{
 
-        if(usePointAmount < 0L || usePointAmount > 1_000_000L){
+        //사용 포인트 최소/최대 값 체크
+        if(usePointAmount < UserPoint.MIN_POINT || usePointAmount > UserPoint.MAX_POINT){
             throw new CustomException(ErrorCode.INVALID_USE_POINT);
         }
 
@@ -76,7 +69,7 @@ public class UserPointService {
         long ownUserPoint = currentUserPoint.point();
         
         //잔여 포인트가 0P 이거나 잔여 포인트 - 사용 포인트가 0P 보다 작은지 체크
-        if(ownUserPoint == 0L || (ownUserPoint - usePointAmount) < 0){
+        if(ownUserPoint == UserPoint.MIN_POINT || (ownUserPoint - usePointAmount) < UserPoint.MIN_POINT){
             throw new CustomException(ErrorCode.NOT_ENOUGH_VALANCE);
         }
 
@@ -110,3 +103,4 @@ public class UserPointService {
         return pointHistoryTable.selectAllByUserId(id);
     }
 }
+
