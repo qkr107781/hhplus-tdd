@@ -70,7 +70,16 @@ public class UserPointService {
             throw new CustomException(ErrorCode.NOT_ENOUGH_VALANCE);
         }
 
-        return null;
+        //사용 후 잔여 포인트
+        long remainingUserPoint = ownUserPoint - usePointAmount;
+
+        //포인트 사용
+        UserPoint afterUseUserPoint = userPointTable.insertOrUpdate(id,remainingUserPoint);
+
+        //사용 내역 저장
+        pointHistoryTable.insert(id,usePointAmount, TransactionType.USE,afterUseUserPoint.updateMillis());
+
+        return afterUseUserPoint;
     }
 
 }
