@@ -28,20 +28,20 @@ public class PointController {
      * TODO - 특정 유저의 포인트를 조회하는 기능을 작성해주세요.
      */
     @GetMapping("{id}")
-    public UserPoint point(
+    public ResponseEntity<UserPoint> point(
             @PathVariable long id
     ) {
-        return new UserPoint(0, 0, 0);
+        return ResponseEntity.ok(userPointService.selectUserPoint(id));
     }
 
     /**
      * TODO - 특정 유저의 포인트 충전/이용 내역을 조회하는 기능을 작성해주세요.
      */
     @GetMapping("{id}/histories")
-    public List<PointHistory> history(
+    public ResponseEntity<List<PointHistory>> history(
             @PathVariable long id
     ) {
-        return List.of();
+        return ResponseEntity.ok(userPointService.selectUserPointHistory(id));
     }
 
     /**
