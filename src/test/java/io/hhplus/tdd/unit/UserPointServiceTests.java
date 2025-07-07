@@ -40,8 +40,8 @@ class UserPointServiceTests {
 	}
 
 	@Test
-	@DisplayName("[포인트 충전]입력받은 포인트 충전 및 충전 내역 기록")
-	void chargePointSuccess(){
+	@DisplayName("[포인트 충전]입력받은 포인트 충전")
+	void chargePoint(){
 	//Given
 		long id = 11L;
 		long chargePointAmount = 1_000L;
@@ -56,17 +56,35 @@ class UserPointServiceTests {
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint afterChargeUserPoint =  userPointService.chargePoint(id, chargePointAmount);
 	//Then
-		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
+		//포인트 정상 충전 확인
+		assertEquals(id,afterChargeUserPoint.id());
+		assertEquals(chargePointAmount,afterChargeUserPoint.point());
+	}
 
+	@Test
+	@DisplayName("[포인트 충전]충전 내역 기록")
+	void recordChargePointHistory(){
+	//Given
+		long id = 11L;
+		long chargePointAmount = 1_000L;
+
+		//소유 포인트가 없는 유저포인트 객체 생성
+		UserPointTable userPointTable= new UserPointTable();
+		userPointTable.insertOrUpdate(id,0L);
+
+		//사용 내역 객체 생성
+		PointHistoryTable pointHistoryTable = new PointHistoryTable();
+	//When
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		userPointService.chargePoint(id, chargePointAmount);
+
+		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
+	//Then
 		//충전 이력 정상 입력 확인
 		assertEquals(1,pointHistory.size());//1회 충전으로 리턴 리스트 사이즈는 1이어야 함
 		assertEquals(id,pointHistory.get(0).userId());
 		assertEquals(chargePointAmount,pointHistory.get(0).amount());
 		assertEquals(TransactionType.CHARGE,pointHistory.get(0).type());
-
-		//포인트 정상 충전 확인
-		assertEquals(id,afterChargeUserPoint.id());
-		assertEquals(chargePointAmount,afterChargeUserPoint.point());
 	}
 
 	@ParameterizedTest
@@ -117,7 +135,7 @@ class UserPointServiceTests {
 	@Test
 	@DisplayName("[포인트 사용]사용 내역 기록")
 	void recordUsePointHistory(){
-		//Given
+	//Given
 		long id = 11L;
 		long usePointAmount = 1_000L;
 		long ownUserPoint = 10_000L;
@@ -128,12 +146,12 @@ class UserPointServiceTests {
 
 		//사용 내역 객체 생성
 		PointHistoryTable pointHistoryTable = new PointHistoryTable();
-		//When
+	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		userPointService.usePoint(id, usePointAmount);
-		//Then
-		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
 
+		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
+	//Then
 		//사용 내역 정상 입력 확인
 		assertEquals(1,pointHistory.size());//1회 충전으로 리턴 리스트 사이즈는 1이어야 함
 		assertEquals(id,pointHistory.get(0).userId());

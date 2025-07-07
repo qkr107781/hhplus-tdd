@@ -46,7 +46,7 @@ public class PointControllerTests {
     }
 
     @Test
-    @DisplayName("[포인트 충전]입력받은 포인트 충전 및 충전 내역 기록")
+    @DisplayName("[포인트 충전]입력받은 포인트 충전")
     void chargePointSuccess() throws Exception {
     //Given
         long id = 11L;
@@ -124,7 +124,7 @@ public class PointControllerTests {
         PointHistory chargePointHistory = new PointHistory(1,id,chargePoint,TransactionType.CHARGE,System.currentTimeMillis());
         PointHistory usePointHistory = new PointHistory(2,id,usePoint,TransactionType.USE,System.currentTimeMillis());
 
-        List<PointHistory> pointHistories = new ArrayList<PointHistory>();
+        List<PointHistory> pointHistories = new ArrayList<>();
         pointHistories.add(chargePointHistory);
         pointHistories.add(usePointHistory);
 
