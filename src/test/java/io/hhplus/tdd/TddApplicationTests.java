@@ -183,7 +183,7 @@ class TddApplicationTests {
 	}
 
 	@Test
-	@DisplayName("[포인트 사용 내역 조회]포인트 사용 내역 조회")
+	@DisplayName("[포인트 충전/사용 내역 조회]포인트 충전/사용 내역 조회")
 	void selectUserPointHistory(){
 	//Given
 		long id = 11L;

@@ -101,6 +101,11 @@ public class UserPointService {
         return userPointTable.selectById(id);
     }
 
+    /**
+     * [포인트 충전/사용 내역 조회]
+     * @param id 유저 ID
+     * @return List<PointHistory> - 포인트 충전/사용 내역 데이터
+     */
     public List<PointHistory> selectUserPointHistory(long id){
         return pointHistoryTable.selectAllByUserId(id);
     }
