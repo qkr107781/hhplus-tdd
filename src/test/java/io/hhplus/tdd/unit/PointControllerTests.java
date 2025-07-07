@@ -77,7 +77,7 @@ public class PointControllerTests {
     }
 
     @Test
-    @DisplayName("[포인트 사용]입력받은 포인트 만큼 소유 포인트 에서 차감 및 사용 내역 기록")
+    @DisplayName("[포인트 사용]입력받은 포인트 만큼 소유 포인트 에서 차감")
     void usePointAndRecordHistory() throws Exception {
         //Given
         long id = 11L;

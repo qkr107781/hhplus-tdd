@@ -91,8 +91,8 @@ class UserPointServiceTests {
 	}
 
 	@Test
-	@DisplayName("[포인트 사용]입력받은 포인트 만큼 소유 포인트 에서 차감 및 사용 내역 기록")
-	void usePointAndRecordHistory(){
+	@DisplayName("[포인트 사용]입력받은 포인트 만큼 소유 포인트 에서 차감")
+	void usePoint(){
 	//Given
 		long id = 11L;
 		long usePointAmount = 1_000L;
@@ -109,6 +109,29 @@ class UserPointServiceTests {
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint afterUseUserPoint =  userPointService.usePoint(id, usePointAmount);
 	//Then
+		//포인트 정상 사용 확인
+		assertEquals(id,afterUseUserPoint.id());
+		assertEquals(remainingUserPoint,afterUseUserPoint.point());
+	}
+
+	@Test
+	@DisplayName("[포인트 사용]사용 내역 기록")
+	void recordUsePointHistory(){
+		//Given
+		long id = 11L;
+		long usePointAmount = 1_000L;
+		long ownUserPoint = 10_000L;
+
+		//소유 포인트 10_000P 유저포인트 객체 생성
+		UserPointTable userPointTable= new UserPointTable();
+		userPointTable.insertOrUpdate(id,ownUserPoint);
+
+		//사용 내역 객체 생성
+		PointHistoryTable pointHistoryTable = new PointHistoryTable();
+		//When
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		userPointService.usePoint(id, usePointAmount);
+		//Then
 		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
 
 		//사용 내역 정상 입력 확인
@@ -116,10 +139,6 @@ class UserPointServiceTests {
 		assertEquals(id,pointHistory.get(0).userId());
 		assertEquals(usePointAmount,pointHistory.get(0).amount());
 		assertEquals(TransactionType.USE,pointHistory.get(0).type());
-
-		//포인트 정상 사용 확인
-		assertEquals(id,afterUseUserPoint.id());
-		assertEquals(remainingUserPoint,afterUseUserPoint.point());
 	}
 
 	@Test
@@ -159,9 +178,9 @@ class UserPointServiceTests {
 
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		//포인트 충전
-		UserPoint afterChargeUserPoint =  userPointService.chargePoint(id, chargePointAmount);
+		userPointService.chargePoint(id, chargePointAmount);
 		//포인트 사용
-		UserPoint afterUseUserPoint =  userPointService.usePoint(id, usePointAmount);
+		userPointService.usePoint(id, usePointAmount);
 	//When
 		List<PointHistory> pointHistories = userPointService.selectUserPointHistory(id);
 	//Then
