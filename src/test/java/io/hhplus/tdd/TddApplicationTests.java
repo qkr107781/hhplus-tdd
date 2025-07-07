@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.boot.convert.DataSizeUnit;
 
 import java.util.List;
 
@@ -134,12 +135,12 @@ class TddApplicationTests {
 	@Test
 	@DisplayName("[포인트 사용]입력받은 포인트 만큼 소유 포인트 에서 차감 및 사용 내역 기록")
 	void usePointAndRecordHistory(){
-		//Given
+	//Given
 		long id = 11L;
 		long usePointAmount = 1_000L;
 		long ownUserPoint = 10_000L;
 		long remainingUserPoint = ownUserPoint - usePointAmount;
-				//When
+	//When
 		//소유 포인트 10_000P 유저포인트 객체 생성
 		UserPointTable userPointTable= new UserPointTable();
 		userPointTable.insertOrUpdate(id,ownUserPoint);
@@ -149,7 +150,7 @@ class TddApplicationTests {
 
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint afterUseUserPoint =  userPointService.usePoint(id, usePointAmount);
-		//Then
+	//Then
 		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
 
 		//사용 내역 정상 입력 확인
@@ -161,5 +162,25 @@ class TddApplicationTests {
 		//포인트 정상 사용 확인
 		assertEquals(id,afterUseUserPoint.id());
 		assertEquals(remainingUserPoint,afterUseUserPoint.point());
+	}
+
+	@Test
+	@DisplayName("[포인트 조회]소유 포인트 조회")
+	void selectOwnPoint(){
+	//Given
+		long id = 11L;
+		long ownUserPoint = 10_000L;
+	//When
+		//소유 포인트 10_000P 유저포인트 객체 생성
+		UserPointTable userPointTable = new UserPointTable();
+		userPointTable.insertOrUpdate(id,ownUserPoint);
+
+		//사용 내역 객체 생성
+		PointHistoryTable pointHistoryTable = new PointHistoryTable();
+
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPoint currentUserPoint = userPointService.selectUserPoint(id);
+	//Then
+		assertEquals(ownUserPoint,currentUserPoint.point());
 	}
 }

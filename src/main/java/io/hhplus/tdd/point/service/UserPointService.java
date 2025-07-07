@@ -20,7 +20,7 @@ public class UserPointService {
     }
 
     /**
-     * 입력받은 유저 포인트 충전
+     * [포인트 충전] - 입력받은 포인트만큼 충전 후 충전 내역 저장
      * @param id 유저 ID
      * @param chargePointAmount 충전 요청 포인트
      * @return UserPoint 충전 완료된 유저 데이터
@@ -55,7 +55,14 @@ public class UserPointService {
         return afterChargeUserPoint;
     }
 
-    public UserPoint usePoint(long id, long usePointAmount){
+    /**
+     * [포인트 사용] - 입력받은 포인트 만큼 보유 포인트에서 차감 및 사용 내역 저장
+     * @param id 유저 ID
+     * @param usePointAmount 사용 요청 포인트
+     * @return UserPoint 사용 완료된 유저 데이터
+     * @throws CustomException 예외처리 공통 클래스
+     */
+    public UserPoint usePoint(long id, long usePointAmount) throws CustomException{
 
         if(usePointAmount < 0L || usePointAmount > 1_000_000L){
             throw new CustomException(ErrorCode.INVALID_USE_POINT);
@@ -80,6 +87,15 @@ public class UserPointService {
         pointHistoryTable.insert(id,usePointAmount, TransactionType.USE,afterUseUserPoint.updateMillis());
 
         return afterUseUserPoint;
+    }
+
+    /**
+     * [포인트 조회] - 현재 소유 포인트 조회
+     * @param id 유저 ID
+     * @return UserPoint 현재 유저 데이터
+     */
+    public UserPoint selectUserPoint(long id){
+        return userPointTable.selectById(id);
     }
 
 }
