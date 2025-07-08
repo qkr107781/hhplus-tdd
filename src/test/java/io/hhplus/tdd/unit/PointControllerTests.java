@@ -23,6 +23,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * 입력 값 검증, Service 로직 실행 결과에 대한 테스트 코드 작성
+ */
 @WebMvcTest(PointController.class)
 public class PointControllerTests {
 
@@ -46,7 +49,7 @@ public class PointControllerTests {
     }
 
     @Test
-    @DisplayName("[포인트 충전]입력받은 포인트 충전 및 충전 내역 기록")
+    @DisplayName("[포인트 충전]입력받은 포인트 충전")
     void chargePointSuccess() throws Exception {
     //Given
         long id = 11L;
@@ -77,7 +80,7 @@ public class PointControllerTests {
     }
 
     @Test
-    @DisplayName("[포인트 사용]입력받은 포인트 만큼 소유 포인트 에서 차감 및 사용 내역 기록")
+    @DisplayName("[포인트 사용]입력받은 포인트 만큼 소유 포인트 에서 차감")
     void usePointAndRecordHistory() throws Exception {
         //Given
         long id = 11L;
@@ -124,7 +127,7 @@ public class PointControllerTests {
         PointHistory chargePointHistory = new PointHistory(1,id,chargePoint,TransactionType.CHARGE,System.currentTimeMillis());
         PointHistory usePointHistory = new PointHistory(2,id,usePoint,TransactionType.USE,System.currentTimeMillis());
 
-        List<PointHistory> pointHistories = new ArrayList<PointHistory>();
+        List<PointHistory> pointHistories = new ArrayList<>();
         pointHistories.add(chargePointHistory);
         pointHistories.add(usePointHistory);
 
