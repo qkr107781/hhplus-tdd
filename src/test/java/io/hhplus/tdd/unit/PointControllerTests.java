@@ -23,6 +23,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * 입력 값 검증, Service 로직 실행 결과에 대한 테스트 코드 작성
+ */
 @WebMvcTest(PointController.class)
 public class PointControllerTests {
 
