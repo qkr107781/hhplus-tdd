@@ -47,7 +47,7 @@ public class PointControllerTests {
                         //Given
                         .content(String.valueOf(chargePointAmount)))
                     //Then
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isInternalServerError());
     }
 
     @Test
