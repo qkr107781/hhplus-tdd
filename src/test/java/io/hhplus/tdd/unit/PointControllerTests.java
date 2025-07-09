@@ -5,6 +5,8 @@ import io.hhplus.tdd.point.dto.PointHistory;
 import io.hhplus.tdd.point.dto.TransactionType;
 import io.hhplus.tdd.point.dto.UserPoint;
 import io.hhplus.tdd.point.service.UserPointService;
+import io.hhplus.tdd.point.util.exception.CustomException;
+import io.hhplus.tdd.point.util.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,7 +38,7 @@ public class PointControllerTests {
     UserPointService userPointService;
 
     @ParameterizedTest
-    @DisplayName("[충전 금액 부족]입력받은 포인트가 0P 이하 일때 충전 실패, [1회 충전 금액 제한]입력받은 포인트가 100,000P 초과 일때 충전 실패")
+    @DisplayName("[포인트 충전][충전 금액 부족]입력받은 포인트가 0P 이하 일때 충전 실패, [1회 충전 금액 제한]입력받은 포인트가 100,000P 초과 일때 충전 실패")
     @ValueSource(longs = {0L,100_001L})
     void validationInputChargePoint(long chargePointAmount) throws Exception {
         //When
@@ -45,18 +47,18 @@ public class PointControllerTests {
                         //Given
                         .content(String.valueOf(chargePointAmount)))
                     //Then
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isInternalServerError());
     }
 
     @Test
-    @DisplayName("[포인트 충전]입력받은 포인트 충전")
+    @DisplayName("[포인트 충전]입력받은 포인트 충전 - 성공")
     void chargePointSuccess() throws Exception {
     //Given
         long id = 11L;
         long chargePointAmount = 1_000L;
 
-        UserPoint userPoint = new UserPoint(id,chargePointAmount,System.currentTimeMillis());
-        when(userPointService.chargePoint(id,chargePointAmount)).thenReturn(userPoint);
+        //chargePointAmount 만큼 포인트 충전 되는 Mock 객체
+        when(userPointService.chargePoint(id,chargePointAmount)).thenReturn(new UserPoint(id,chargePointAmount,System.currentTimeMillis()));
     //When
         mockMvc.perform(patch("/point/11/charge")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -66,8 +68,25 @@ public class PointControllerTests {
                     .andExpect(jsonPath("$.point").value(chargePointAmount));
     }
 
+    @Test
+    @DisplayName("[포인트 충전][최대 잔고 초과]충전 요청 포인트 + 소유 포인트가 1,000,000P 초과 일때 충전 실패")
+    void chargePointFail() throws Exception {
+        //Given
+        long id = 11L;
+        long chargePointAmount = 2L;
+
+        //최대 잔고 초과 충전 요청 시 OVER_CHARGE 에러코드 리턴
+        when(userPointService.chargePoint(id, chargePointAmount)).thenThrow(new CustomException(ErrorCode.OVER_CHARGE));
+        //When
+        mockMvc.perform(patch("/point/11/charge")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.valueOf(chargePointAmount)))
+                    //Then
+                    .andExpect(status().isInternalServerError());
+    }
+
     @ParameterizedTest
-    @DisplayName("[사용 포인트 제한]사용 포인트가 0P 이하 이거나 최대 잔고인 1,000,000P를 초과하는 경우 사용 실패")
+    @DisplayName("[포인트 사용][사용 포인트 제한]사용 포인트가 0P 이하 이거나 최대 잔고인 1,000,000P를 초과하는 경우 사용 실패")
     @ValueSource(longs = {-1L,1_000_001L})
     void invalidUsePoint(long usePointAmount) throws Exception {
         //When
@@ -76,7 +95,7 @@ public class PointControllerTests {
                         //Given
                         .content(String.valueOf(usePointAmount)))
                     //Then
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -97,6 +116,23 @@ public class PointControllerTests {
                     //Then
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.point").value(remainingUserPoint));
+    }
+
+    @Test
+    @DisplayName("[포인트 사용][잔고 부족]소유 포인트가 0P 이거나 사용할 포인트보다 작은 경우 사용 실패")
+    void notEnoughValance() throws Exception {
+        //Given
+        long id = 11L;
+        long usePointAmount = 100_000L;
+
+        //최대 잔고 초과 충전 요청 시 NOT_ENOUGH_VALANCE 에러코드 리턴
+        when(userPointService.usePoint(id, usePointAmount)).thenThrow(new CustomException(ErrorCode.NOT_ENOUGH_VALANCE));
+        //When
+        mockMvc.perform(patch("/point/11/use")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.valueOf(usePointAmount)))
+                    //Then
+                    .andExpect(status().isInternalServerError());
     }
 
     @Test

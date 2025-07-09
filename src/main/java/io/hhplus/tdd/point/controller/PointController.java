@@ -5,8 +5,6 @@ import io.hhplus.tdd.point.dto.UserPoint;
 import io.hhplus.tdd.point.service.UserPointService;
 import io.hhplus.tdd.point.util.exception.CustomException;
 import io.hhplus.tdd.point.util.exception.ErrorCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/point")
 public class PointController {
-
-    private static final Logger log = LoggerFactory.getLogger(PointController.class);
 
     private final UserPointService userPointService;
 
@@ -51,15 +47,15 @@ public class PointController {
     public ResponseEntity<UserPoint> charge(
             @PathVariable long id,
             @RequestBody long chargeAmount
-    ) {
+    ) throws CustomException {
 
         //최소 충전 포인트 체크
         if (chargeAmount <= UserPoint.MIN_POINT) {
-            return ResponseEntity.badRequest().build();
+            throw new CustomException(ErrorCode.ZERO_POINT);
         }
         //최대 충전 포인트 체크
         if (chargeAmount > UserPoint.MAX_POINT_PER_ONCE) {
-            return ResponseEntity.badRequest().build();
+            throw new CustomException(ErrorCode.LIMIT_ONETIME_CHARGE_AMOUNT);
         }
 
         UserPoint afterChargePoint = userPointService.chargePoint(id, chargeAmount);
@@ -74,11 +70,11 @@ public class PointController {
     public ResponseEntity<UserPoint> use(
             @PathVariable long id,
             @RequestBody long usePointAmount
-    ) {
+    ) throws CustomException {
 
         //사용 포인트 최소/최대 값 체크
         if(usePointAmount < UserPoint.MIN_POINT || usePointAmount > UserPoint.MAX_POINT){
-            return ResponseEntity.badRequest().build();
+            throw new CustomException(ErrorCode.INVALID_USE_POINT);
         }
 
         UserPoint afterUsePoint = userPointService.usePoint(id, usePointAmount);

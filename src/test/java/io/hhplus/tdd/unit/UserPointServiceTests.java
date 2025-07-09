@@ -39,7 +39,7 @@ class UserPointServiceTests {
 	private final long id = 11L;
 
 	@Test
-	@DisplayName("[최대 잔고 초과]충전 요청 포인트 + 소유 포인트가 1,000,000P 초과 일때 충전 실패")
+	@DisplayName("[포인트 충전][최대 잔고 초과]충전 요청 포인트 + 소유 포인트가 1,000,000P 초과 일때 충전 실패")
 	void overChargeAttempt(){
 	//Given
 		//충전 포인트: 최대 잔고인 1_000_000P를 넘어가는 경계값
@@ -109,7 +109,7 @@ class UserPointServiceTests {
 	}
 
 	@ParameterizedTest
-	@DisplayName("[잔고 부족]소유 포인트가 0P 이거나 사용할 포인트보다 작은 경우 사용 실패")
+	@DisplayName("[포인트 사용][잔고 부족]소유 포인트가 0P 이거나 사용할 포인트보다 작은 경우 사용 실패")
 	@ValueSource(longs = {0L,10_000L})
 	void notEnoughValance(long ownPointAmount){
 	//Given
