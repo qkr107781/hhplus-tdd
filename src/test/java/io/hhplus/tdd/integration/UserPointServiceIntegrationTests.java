@@ -5,10 +5,7 @@ import io.hhplus.tdd.point.dto.TransactionType;
 import io.hhplus.tdd.point.dto.UserPoint;
 import io.hhplus.tdd.point.service.UserPointService;
 import io.hhplus.tdd.point.util.exception.CustomException;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -45,6 +42,7 @@ public class UserPointServiceIntegrationTests {
 
     @Test
     @Order(1)
+    @DisplayName("1. 현재 소유 포인트 조회(0P)")
     void selectOwnPoint1(){
     //Given
         long ownUserPointAmount = 0L;
@@ -59,6 +57,7 @@ public class UserPointServiceIntegrationTests {
 
     @Test
     @Order(2)
+    @DisplayName("2. 충전 및 내역 저장(10_000P)")
     void chargePointAndRecordHistory(){
     //Given
         long chargePointAmount = 10_000L;
@@ -73,6 +72,7 @@ public class UserPointServiceIntegrationTests {
 
     @Test
     @Order(3)
+    @DisplayName("3. 충전 내역 조회(CHARGE, 10_000P)")
     void selectChargeHistory(){
     //Given
         long chargePointAmount = 10_000L;
@@ -90,11 +90,11 @@ public class UserPointServiceIntegrationTests {
 
     @Test
     @Order(4)
+    @DisplayName("4. 소유 포인트 조회(10_000P)")
     void selectOwnPoint2(){
     //Given
         long ownUserPointAmount = 10_000L;
     //When
-        //4. 소유 포인트 조회(10_000P)
         UserPoint selectAfterChargeUserPoint = userPointService.selectUserPoint(id);
     //Then
         assertEquals(id,selectAfterChargeUserPoint.id());
@@ -104,12 +104,13 @@ public class UserPointServiceIntegrationTests {
 
     @Test
     @Order(5)
+    @DisplayName("5. 사용 및 내역 저장(3_000P)")
     void usePointAndRecordHistory(){
     //Given
         long usePointAmount = 3_000L;
-        long remainingUserPointAmount = 7_000L;
+        long ownUserPointAmount = 10_000L;
+        long remainingUserPointAmount = ownUserPointAmount - usePointAmount;
     //When
-        //5. 사용 및 내역 저장(3_000P)
         UserPoint usePoint = userPointService.usePoint(id,usePointAmount);
     //Then
         assertEquals(id,usePoint.id());
@@ -119,11 +120,11 @@ public class UserPointServiceIntegrationTests {
 
     @Test
     @Order(6)
+    @DisplayName("6. 사용 내역 조회(USE, 3_000P)")
     void selectUseHistory(){
     //Given
         long usePointAmount = 3_000L;
     //When
-        //6. 사용 내역 조회(USE, 3_000P)
         List<PointHistory> useHistorys = userPointService.selectUserPointHistory(id);
     //Then
         assertEquals(2,useHistorys.size());//앞에 충전도 했어서 리턴 리스트 사이즈는 2이어야 함
@@ -136,11 +137,11 @@ public class UserPointServiceIntegrationTests {
 
     @Test
     @Order(7)
+    @DisplayName("7. 잔여 포인트 조회(7_000P)")
     void selectOwnPoint3(){
     //Given
         long ownUserPointAmount = 7_000L;
     //When
-        //7. 잔여 포인트 조회(7_000P)
         UserPoint selectAfterUseUserPoint = userPointService.selectUserPoint(id);
     //Then
         assertEquals(id,selectAfterUseUserPoint.id());
@@ -150,12 +151,12 @@ public class UserPointServiceIntegrationTests {
 
     @Test
     @Order(8)
+    @DisplayName("8. 로직 수행 중 예외 처리")
     void testException(){
     //Given
         long chargePointAmount = 993_001L;
         long usePointAmount = 7_001L;
     //When
-        //8. 로직 수행 중 예외 처리
         //[포인트 충전][최대 잔고 초과]충전 요청 포인트 + 소유 포인트가 1,000,000P 초과 일때 충전 실패
         CustomException overChargeEx = assertThrows(CustomException.class, () -> userPointService.chargePoint(id, chargePointAmount),"최대 잔고 초과");
         //[포인트 사용][잔고 부족]소유 포인트가 0P 이거나 사용할 포인트보다 작은 경우 사용 실패
