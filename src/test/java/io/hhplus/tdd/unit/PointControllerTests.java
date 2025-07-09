@@ -38,7 +38,7 @@ public class PointControllerTests {
     UserPointService userPointService;
 
     @ParameterizedTest
-    @DisplayName("[충전 금액 부족]입력받은 포인트가 0P 이하 일때 충전 실패, [1회 충전 금액 제한]입력받은 포인트가 100,000P 초과 일때 충전 실패")
+    @DisplayName("[포인트 충전][충전 금액 부족]입력받은 포인트가 0P 이하 일때 충전 실패, [1회 충전 금액 제한]입력받은 포인트가 100,000P 초과 일때 충전 실패")
     @ValueSource(longs = {0L,100_001L})
     void validationInputChargePoint(long chargePointAmount) throws Exception {
         //When
@@ -69,7 +69,7 @@ public class PointControllerTests {
     }
 
     @Test
-    @DisplayName("[최대 잔고 초과]충전 요청 포인트 + 소유 포인트가 1,000,000P 초과 일때 충전 실패")
+    @DisplayName("[포인트 충전][최대 잔고 초과]충전 요청 포인트 + 소유 포인트가 1,000,000P 초과 일때 충전 실패")
     void chargePointFail() throws Exception {
         //Given
         long id = 11L;
@@ -86,7 +86,7 @@ public class PointControllerTests {
     }
 
     @ParameterizedTest
-    @DisplayName("[사용 포인트 제한]사용 포인트가 0P 이하 이거나 최대 잔고인 1,000,000P를 초과하는 경우 사용 실패")
+    @DisplayName("[포인트 사용][사용 포인트 제한]사용 포인트가 0P 이하 이거나 최대 잔고인 1,000,000P를 초과하는 경우 사용 실패")
     @ValueSource(longs = {-1L,1_000_001L})
     void invalidUsePoint(long usePointAmount) throws Exception {
         //When
@@ -119,7 +119,7 @@ public class PointControllerTests {
     }
 
     @Test
-    @DisplayName("[잔고 부족]소유 포인트가 0P 이거나 사용할 포인트보다 작은 경우 사용 실패")
+    @DisplayName("[포인트 사용][잔고 부족]소유 포인트가 0P 이거나 사용할 포인트보다 작은 경우 사용 실패")
     void notEnoughValance() throws Exception {
         //Given
         long id = 11L;
