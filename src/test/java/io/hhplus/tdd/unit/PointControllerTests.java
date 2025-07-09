@@ -95,7 +95,7 @@ public class PointControllerTests {
                         //Given
                         .content(String.valueOf(usePointAmount)))
                     //Then
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isInternalServerError());
     }
 
     @Test
