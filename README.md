@@ -69,7 +69,7 @@
 
 <br>	
 
- ### ConcurrentHashMap - 여러명의 유저 동시성 제어 구현
+> ### ConcurrentHashMap - 여러명의 유저 동시성 제어 구현
 > - **동작 원리** 
 >> - put(): 실행 시 해당 key 값의 Bucket에 lock 획하여 다른 스레드가 동시에 변경하는 것을 방지함
 >>> - -> 메소드 전체가 아닌 특정 소스 블럭에 syncronized 선언 되어 있음
