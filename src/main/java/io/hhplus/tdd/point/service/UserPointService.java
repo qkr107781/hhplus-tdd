@@ -7,19 +7,23 @@ import io.hhplus.tdd.point.dto.TransactionType;
 import io.hhplus.tdd.point.dto.UserPoint;
 import io.hhplus.tdd.point.util.exception.CustomException;
 import io.hhplus.tdd.point.util.exception.ErrorCode;
+import io.hhplus.tdd.point.util.lock.ConcurrentAndReentraantLockFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class UserPointService {
 
     private final UserPointTable userPointTable;
     private final PointHistoryTable pointHistoryTable;
+    private final ConcurrentAndReentraantLockFactory concurrentAndReentraantLockFactory;
 
-    public UserPointService(UserPointTable userPointTable, PointHistoryTable pointHistoryTable) {
+    public UserPointService(UserPointTable userPointTable, PointHistoryTable pointHistoryTable, ConcurrentAndReentraantLockFactory concurrentAndReentraantLockFactory) {
         this.userPointTable = userPointTable;
         this.pointHistoryTable = pointHistoryTable;
+        this.concurrentAndReentraantLockFactory = concurrentAndReentraantLockFactory;
     }
 
     /**
@@ -30,24 +34,72 @@ public class UserPointService {
      * @throws CustomException 예외처리 공통 클래스
      */
     public UserPoint chargePoint(long id, long chargePointAmount) throws CustomException {
+        //ReentrantLock 객체 생성
+        ReentrantLock lock = concurrentAndReentraantLockFactory.getLock(id);
 
-        //현재 소유 포인트 조회
-        UserPoint currentUserPoint = userPointTable.selectById(id);
+        //lock 획득
+        lock.lock();
+        
+        try{
+            //현재 소유 포인트 조회
+            UserPoint currentUserPoint = userPointTable.selectById(id);
 
-        //소유 포인트와 충전 포인트 더하기
-        chargePointAmount += currentUserPoint.point();
-        //최대 잔고 초과 충전 체크
-        if(chargePointAmount > UserPoint.MAX_POINT){
-            throw new CustomException(ErrorCode.OVER_CHARGE);
+            //소유 포인트와 충전 포인트 더하기
+            chargePointAmount += currentUserPoint.point();
+            //최대 잔고 초과 충전 체크
+            if(chargePointAmount > UserPoint.MAX_POINT){
+                throw new CustomException(ErrorCode.OVER_CHARGE);
+            }
+
+            //충전
+            UserPoint afterChargeUserPoint = userPointTable.insertOrUpdate(id,chargePointAmount);
+
+            //충전 내역 기록
+            pointHistoryTable.insert(id,chargePointAmount, TransactionType.CHARGE,afterChargeUserPoint.updateMillis());
+
+            return afterChargeUserPoint;
+        } finally {
+            //lock 반환
+            lock.unlock();
         }
+    }
 
-        //충전
-        UserPoint afterChargeUserPoint = userPointTable.insertOrUpdate(id,chargePointAmount);
+    /**
+     * ReentrantLock vs ConcurrentHashMap+ReentrantLock 성능 비교 테스트용 메소드
+     * @param id 유저 ID
+     * @param chargePointAmount 충전 요청 포인트
+     * @return UserPoint 충전 완료된 유저 데이터
+     * @throws CustomException 예외처리 공통 클래스
+     */
+    public UserPoint chargePointOnlyReentrantLock(long id, long chargePointAmount) throws CustomException {
+        //ReentrantLock 객체 생성
+        ReentrantLock lock = concurrentAndReentraantLockFactory.getReentrantLock();
 
-        //충전 내역 기록
-        pointHistoryTable.insert(id,chargePointAmount, TransactionType.CHARGE,afterChargeUserPoint.updateMillis());
+        //lock 획득
+        lock.lock();
 
-        return afterChargeUserPoint;
+        try{
+            //현재 소유 포인트 조회
+            UserPoint currentUserPoint = userPointTable.selectById(id);
+
+            //소유 포인트와 충전 포인트 더하기
+            chargePointAmount += currentUserPoint.point();
+            //최대 잔고 초과 충전 체크
+            if(chargePointAmount > UserPoint.MAX_POINT){
+                throw new CustomException(ErrorCode.OVER_CHARGE);
+            }
+
+            //충전
+            UserPoint afterChargeUserPoint = userPointTable.insertOrUpdate(id,chargePointAmount);
+
+            //충전 내역 기록
+            pointHistoryTable.insert(id,chargePointAmount, TransactionType.CHARGE,afterChargeUserPoint.updateMillis());
+
+            return afterChargeUserPoint;
+        } finally {
+            //lock 반환
+            lock.unlock();
+        }
     }
 
     /**
