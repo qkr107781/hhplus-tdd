@@ -37,6 +37,8 @@ class UserPointServiceTests {
 
 	//유저 ID
 	private final long id = 11L;
+	//현재시간
+	private final long currentTimeMillis = System.currentTimeMillis();
 
 	@Test
 	@DisplayName("[포인트 충전][최대 잔고 초과]충전 요청 포인트 + 소유 포인트가 1,000,000P 초과 일때 충전 실패")
@@ -46,7 +48,7 @@ class UserPointServiceTests {
 		long chargePointAmount = 2L;
 
 		//최대 잔고에 근접한 유저포인트 Mock 객체
-		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,999_999L,System.currentTimeMillis()));
+		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,999_999L,currentTimeMillis));
 	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		CustomException ce = assertThrows(CustomException.class,() -> userPointService.chargePoint(id, chargePointAmount),"충천 포인트 0P");
@@ -64,9 +66,9 @@ class UserPointServiceTests {
 		long chargePointAmount = 1_000L;
 
 		//소유 포인트가 없는 유저포인트 Mock 객체
-		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,0L,System.currentTimeMillis()));
+		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,0L,currentTimeMillis));
 		//chargePointAmount 만큼 포인트 충전된 Mock 객체
-		when(userPointTable.insertOrUpdate(id,chargePointAmount)).thenReturn(new UserPoint(id,chargePointAmount,System.currentTimeMillis()));
+		when(userPointTable.insertOrUpdate(id,chargePointAmount)).thenReturn(new UserPoint(id,chargePointAmount,currentTimeMillis));
 	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint afterChargeUserPoint =  userPointService.chargePoint(id, chargePointAmount);
@@ -84,15 +86,15 @@ class UserPointServiceTests {
 		long chargePointAmount = 1_000L;
 
 		//소유 포인트가 없는 유저포인트 Mock 객체
-		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,0L,System.currentTimeMillis()));
+		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,0L,currentTimeMillis));
 		//chargePointAmount 만큼 포인트 충전된 Mock 객체
-		when(userPointTable.insertOrUpdate(id,chargePointAmount)).thenReturn(new UserPoint(id,chargePointAmount,System.currentTimeMillis()));
+		when(userPointTable.insertOrUpdate(id,chargePointAmount)).thenReturn(new UserPoint(id,chargePointAmount,currentTimeMillis));
 
-		PointHistory chargePointHistory = new PointHistory(1,id,chargePointAmount,TransactionType.CHARGE,System.currentTimeMillis());
+		PointHistory chargePointHistory = new PointHistory(1,id,chargePointAmount,TransactionType.CHARGE,currentTimeMillis);
 		List<PointHistory> pointHistories = new ArrayList<>();
 		pointHistories.add(chargePointHistory);
 		//충전 내역 입력 Mock 객체
-		when(pointHistoryTable.insert(id,chargePointAmount,TransactionType.CHARGE,System.currentTimeMillis())).thenReturn(chargePointHistory);
+		when(pointHistoryTable.insert(id,chargePointAmount,TransactionType.CHARGE,currentTimeMillis)).thenReturn(chargePointHistory);
 		//충전 내역 조회 Mock 객체
 		when(pointHistoryTable.selectAllByUserId(id)).thenReturn(pointHistories);
 	//When
@@ -116,7 +118,7 @@ class UserPointServiceTests {
 		long usePointAmount = 100_000L;
 
 		//소유 포인트를 ValueSouce에서 입력받는 유저포인트 Mock 객체
-		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownPointAmount,System.currentTimeMillis()));
+		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownPointAmount,currentTimeMillis));
 	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		CustomException ce = assertThrows(CustomException.class,() -> userPointService.usePoint(id, usePointAmount - ownPointAmount),"잔여 포인트 부족");
@@ -135,9 +137,9 @@ class UserPointServiceTests {
 		long remainingUserPointAmount = ownUserPointAmount - usePointAmount;
 
 		//소유 포인트 10_000P 유저포인트 Mock 객체
-		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownUserPointAmount,System.currentTimeMillis()));
+		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownUserPointAmount,currentTimeMillis));
 		//usePointAmount 만큼 포인트 사용 후 remainingUserPointAmount 유저포인트 Mock 객체
-		when(userPointTable.insertOrUpdate(id,remainingUserPointAmount)).thenReturn(new UserPoint(id,remainingUserPointAmount,System.currentTimeMillis()));
+		when(userPointTable.insertOrUpdate(id,remainingUserPointAmount)).thenReturn(new UserPoint(id,remainingUserPointAmount,currentTimeMillis));
 	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint afterUseUserPoint =  userPointService.usePoint(id, usePointAmount);
@@ -156,15 +158,15 @@ class UserPointServiceTests {
 		long remainingUserPointAmount = ownUserPointAmount - usePointAmount;
 
 		//소유 포인트 10_000P 유저포인트 Mock 객체
-		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownUserPointAmount,System.currentTimeMillis()));
+		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownUserPointAmount,currentTimeMillis));
 		//usePointAmount 만큼 포인트 사용 후 remainingUserPointAmount 유저포인트 Mock 객체
-		when(userPointTable.insertOrUpdate(id,remainingUserPointAmount)).thenReturn(new UserPoint(id,remainingUserPointAmount,System.currentTimeMillis()));
+		when(userPointTable.insertOrUpdate(id,remainingUserPointAmount)).thenReturn(new UserPoint(id,remainingUserPointAmount,currentTimeMillis));
 
-		PointHistory usePointHistory = new PointHistory(1,id,usePointAmount,TransactionType.USE,System.currentTimeMillis());
+		PointHistory usePointHistory = new PointHistory(1,id,usePointAmount,TransactionType.USE,currentTimeMillis);
 		List<PointHistory> pointHistories = new ArrayList<>();
 		pointHistories.add(usePointHistory);
 		//사용 내역 입력 Mock 객체
-		when(pointHistoryTable.insert(id,usePointAmount,TransactionType.USE,System.currentTimeMillis())).thenReturn(usePointHistory);
+		when(pointHistoryTable.insert(id,usePointAmount,TransactionType.USE,currentTimeMillis)).thenReturn(usePointHistory);
 		//사용 내역 조회 Mock 객체
 		when(pointHistoryTable.selectAllByUserId(id)).thenReturn(pointHistories);
 	//When
@@ -187,7 +189,7 @@ class UserPointServiceTests {
 		long ownUserPointAmount = 10_000L;
 
 		//소유 포인트 10_000P 유저포인트 Mock 객체
-		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownUserPointAmount,System.currentTimeMillis()));
+		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownUserPointAmount,currentTimeMillis));
 	//When
 		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
 		UserPoint currentUserPoint = userPointService.selectUserPoint(id);
@@ -202,8 +204,8 @@ class UserPointServiceTests {
 		long chargePointAmount = 10_000L;
 		long usePointAmount = 1_000L;
 
-		PointHistory chargePointHistory = new PointHistory(1,id,chargePointAmount,TransactionType.CHARGE,System.currentTimeMillis());
-		PointHistory usePointHistory = new PointHistory(2,id,usePointAmount,TransactionType.USE,System.currentTimeMillis());
+		PointHistory chargePointHistory = new PointHistory(1,id,chargePointAmount,TransactionType.CHARGE,currentTimeMillis);
+		PointHistory usePointHistory = new PointHistory(2,id,usePointAmount,TransactionType.USE,currentTimeMillis);
 		List<PointHistory> pointHistories = new ArrayList<>();
 		pointHistories.add(chargePointHistory);
 		pointHistories.add(usePointHistory);
