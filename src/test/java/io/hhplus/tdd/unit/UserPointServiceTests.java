@@ -7,6 +7,7 @@ import io.hhplus.tdd.point.dto.TransactionType;
 import io.hhplus.tdd.point.dto.UserPoint;
 import io.hhplus.tdd.point.service.UserPointService;
 import io.hhplus.tdd.point.util.exception.CustomException;
+import io.hhplus.tdd.point.util.lock.ConcurrentAndReentraantLockFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +37,9 @@ class UserPointServiceTests {
 	@Mock
 	private PointHistoryTable pointHistoryTable;//충전/사용 내역 Mock 객체
 
+	@Mock
+	private ConcurrentAndReentraantLockFactory concurrentAndReentraantLockFactory;//lock을 위한 객체
+
 	//유저 ID
 	private final long id = 11L;
 	//현재시간
@@ -47,10 +52,12 @@ class UserPointServiceTests {
 		//충전 포인트: 최대 잔고인 1_000_000P를 넘어가는 경계값
 		long chargePointAmount = 2L;
 
+		//lock mock 객체
+		when(concurrentAndReentraantLockFactory.getLock(id)).thenReturn(new ReentrantLock());
 		//최대 잔고에 근접한 유저포인트 Mock 객체
 		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,999_999L,currentTimeMillis));
 	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable,concurrentAndReentraantLockFactory);
 		CustomException ce = assertThrows(CustomException.class,() -> userPointService.chargePoint(id, chargePointAmount),"충천 포인트 0P");
 	//Then
 		assertEquals(600,ce.getErrorCode().getStatus());
@@ -65,12 +72,14 @@ class UserPointServiceTests {
 		//충전 포인트
 		long chargePointAmount = 1_000L;
 
+		//lock mock 객체
+		when(concurrentAndReentraantLockFactory.getLock(id)).thenReturn(new ReentrantLock());
 		//소유 포인트가 없는 유저포인트 Mock 객체
 		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,0L,currentTimeMillis));
 		//chargePointAmount 만큼 포인트 충전된 Mock 객체
 		when(userPointTable.insertOrUpdate(id,chargePointAmount)).thenReturn(new UserPoint(id,chargePointAmount,currentTimeMillis));
 	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable,concurrentAndReentraantLockFactory);
 		UserPoint afterChargeUserPoint =  userPointService.chargePoint(id, chargePointAmount);
 	//Then
 		//포인트 정상 충전 확인
@@ -85,6 +94,8 @@ class UserPointServiceTests {
 		//충전 포인트
 		long chargePointAmount = 1_000L;
 
+		//lock mock 객체
+		when(concurrentAndReentraantLockFactory.getLock(id)).thenReturn(new ReentrantLock());
 		//소유 포인트가 없는 유저포인트 Mock 객체
 		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,0L,currentTimeMillis));
 		//chargePointAmount 만큼 포인트 충전된 Mock 객체
@@ -98,7 +109,7 @@ class UserPointServiceTests {
 		//충전 내역 조회 Mock 객체
 		when(pointHistoryTable.selectAllByUserId(id)).thenReturn(pointHistories);
 	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable,concurrentAndReentraantLockFactory);
 		userPointService.chargePoint(id, chargePointAmount);
 
 		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
@@ -120,7 +131,7 @@ class UserPointServiceTests {
 		//소유 포인트를 ValueSouce에서 입력받는 유저포인트 Mock 객체
 		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownPointAmount,currentTimeMillis));
 	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable,concurrentAndReentraantLockFactory);
 		CustomException ce = assertThrows(CustomException.class,() -> userPointService.usePoint(id, usePointAmount - ownPointAmount),"잔여 포인트 부족");
 	//Then
 		assertEquals(602,ce.getErrorCode().getStatus());
@@ -141,7 +152,7 @@ class UserPointServiceTests {
 		//usePointAmount 만큼 포인트 사용 후 remainingUserPointAmount 유저포인트 Mock 객체
 		when(userPointTable.insertOrUpdate(id,remainingUserPointAmount)).thenReturn(new UserPoint(id,remainingUserPointAmount,currentTimeMillis));
 	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable,concurrentAndReentraantLockFactory);
 		UserPoint afterUseUserPoint =  userPointService.usePoint(id, usePointAmount);
 	//Then
 		//포인트 정상 사용 확인
@@ -170,7 +181,7 @@ class UserPointServiceTests {
 		//사용 내역 조회 Mock 객체
 		when(pointHistoryTable.selectAllByUserId(id)).thenReturn(pointHistories);
 	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable,concurrentAndReentraantLockFactory);
 		userPointService.usePoint(id, usePointAmount);
 
 		List<PointHistory> pointHistory = pointHistoryTable.selectAllByUserId(id);
@@ -191,7 +202,7 @@ class UserPointServiceTests {
 		//소유 포인트 10_000P 유저포인트 Mock 객체
 		when(userPointTable.selectById(id)).thenReturn(new UserPoint(id,ownUserPointAmount,currentTimeMillis));
 	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable,concurrentAndReentraantLockFactory);
 		UserPoint currentUserPoint = userPointService.selectUserPoint(id);
 	//Then
 		assertEquals(ownUserPointAmount,currentUserPoint.point());
@@ -212,7 +223,7 @@ class UserPointServiceTests {
 		//사용 내역 조회 Mock 객체
 		when(pointHistoryTable.selectAllByUserId(id)).thenReturn(pointHistories);
 	//When
-		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable);
+		UserPointService userPointService = new UserPointService(userPointTable,pointHistoryTable,concurrentAndReentraantLockFactory);
 		List<PointHistory> pointHistorieList = userPointService.selectUserPointHistory(id);
 	//Then
 		//충전 내역 정상 입력 확인
